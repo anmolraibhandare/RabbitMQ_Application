@@ -18,7 +18,10 @@ public class Worker {
         channel.queueDeclare("task_queue", durable, false, false, null);
         System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
 
-        channel.basicQos(1); // accept only one unack-ed message at a time (see below)
+        int prefetchCount = 1;
+        channel.basicQos(prefetchCount);
+
+        // channel.basicQos(1); // accept only one unack-ed message at a time (see below)
 
         //  Fake a second of work for every dot in the message body
         DeliverCallback deliverCallback = (consumerTag, delivery) -> {
