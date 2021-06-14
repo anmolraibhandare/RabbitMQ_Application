@@ -65,6 +65,23 @@ Exchange types: direct, topic, headers and fanout
 ![](Images/bindings.png)
 
 ## Routing 
+In this part we will direct only critical error messages to the log file (to save disk space), while still being able to print all of the log messages on the console. We want to filter messages based on their severity. For example we may want a program which writes log messages to the disk to only receive critical errors, and not waste disk space on warning or info log messages.
+
+1. Create Binding with routingKey
+2. Use a direct exchange - a message goes to the queues whose binding key exactly matches the routing key of the message
+
+**Example setup 1:**
+![](Images/direct-exchange.png) \
+In the setup you can see that direct exchange X is binded with two queue where Q1 is bounded with binding key `orange`. Q2 and Q3 are bounded with binding key `black` and `green`. When a message is published to the exchange with a routing key orange will be routed to queue Q1. Messages with a routing key of black or green will go to Q2. All other messages will be discarded.
+
+**Example setup 2:**
+![](Images/direct-exchange-multiple.png) \
+A message with routing key `black` will be delivered to both Q1 and Q2
+
+3. We receive messages exactly the same way we did before except we're going to create a new binding for each severity we're interested in.
+
+![Example setup 2:](Images/java-four.png) \
+
 
 _Access Management Console http://localhost:15672/#/_ \
 _Ref https://www.rabbitmq.com/getstarted.html_
