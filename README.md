@@ -1,7 +1,6 @@
 # RabbitMQ_Application
  
 ## Introduction - Creating "Hello World" and Setting up RabbitMQ
-_Visit https://www.rabbitmq.com/getstarted.html_
 
 ### Step 1: Creating a Sender 
 The publisher will connect to RabbitMQ, send a single message, then exit
@@ -42,3 +41,5 @@ Create a Work Queue that will be used to distribute time-consuming tasks among m
 - **Message acknowledgment:** If the consumer dies, ensure the message is never lost using message acknowledgment; RabbitMQ will understand that a message wasn't processed fully and will re-queue it. If there are other consumers online at the same time, it will then quickly redeliver it to another consumer.
 - **Message durability:** If the server crashes; Two things are required to make sure that messages aren't lost: we need to mark both the queue and messages as durable.
 - **Fair dispatch:** When RabbitMQ dispatches a message when the message enters the queue. It just blindly dispatches every n-th message to the n-th consumer. Make sure that each worker receives one message at a time.
+
+_Ref https://www.rabbitmq.com/getstarted.html_
