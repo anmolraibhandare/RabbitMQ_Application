@@ -25,12 +25,14 @@ public class Worker {
             System.out.println(" [x] Received '" + message + "'");
             try {
               doWork(message);
+            } catch(InterruptedException ie) {
+                System.out.println(ie);
             } finally {
               System.out.println(" [x] Done");
             }
           };
           boolean autoAck = true; // acknowledgment is covered below
-          channel.basicConsume(TASK_QUEUE_NAME, autoAck, deliverCallback, consumerTag -> { });
+          channel.basicConsume(QUEUE_NAME, autoAck, deliverCallback, consumerTag -> { });
     }
 
     // doWork - Our fake task to simulate execution time
