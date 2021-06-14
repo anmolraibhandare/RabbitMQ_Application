@@ -10,11 +10,15 @@ The publisher will connect to RabbitMQ, send a single message, then exit
 - To send, we must declare a queue for us to send to
 - Publish a message to queue
 
+![](Images/Consumer.png)
+
 ### Step 2: Creating a Receiver
 Consumer listens for messages from RabbitMQ.
 - Declare the queue (Because we might start the consumer before the publisher, we want to make sure the queue exists before we try to consume messages from it)
 - Write a try-with-resource statement to automatically close the channel and the connection
 - Provide a callback in the form of an object that will buffer the messages until we're ready to use them
+
+![](Images/Receiver.png)
 
 ### Step 3: Putting it all together
 
@@ -30,6 +34,8 @@ then, run the publisher (sender):
 ---
 ## Work Queues
 Create a Work Queue that will be used to distribute time-consuming tasks among multiple workers.
+
+![](Images/Work_Queues.png)
 
 > [Round-robin dispatching] The main idea behind Work Queues (aka: Task Queues) is to avoid doing a resource-intensive task immediately and having to wait for it to complete. Instead we schedule the task to be done later. We encapsulate a task as a message and send it to a queue. A worker process running in the background will pop the tasks and eventually execute the job. When you run many workers the tasks will be shared between them.
 
