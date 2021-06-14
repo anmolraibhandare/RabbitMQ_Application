@@ -17,6 +17,7 @@ public class Worker {
         channel.queueDeclare(QUEUE_NAME, false, false, false, null);
         System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
 
+        channel.basicQos(1); // accept only one unack-ed message at a time (see below)
 
         //  Fake a second of work for every dot in the message body
         DeliverCallback deliverCallback = (consumerTag, delivery) -> {
@@ -29,9 +30,10 @@ public class Worker {
                 System.out.println(ie);
             } finally {
               System.out.println(" [x] Done");
+              channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
             }
           };
-          boolean autoAck = true; // acknowledgment is covered below
+          boolean autoAck = false; // acknowledgment set to false
           channel.basicConsume(QUEUE_NAME, autoAck, deliverCallback, consumerTag -> { });
     }
 
