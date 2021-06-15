@@ -27,6 +27,7 @@ public class Send {
             
             // Declare a queue - created only if it does not exist
             channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+            
             String message = "Hello World!";
             
             // Publish the message
