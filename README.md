@@ -159,6 +159,8 @@ Client code:
 - Main thread will wait for response to take it from `BlockingQueue`
 - Finally, return the reponse
 
+## Publisher Confirms
+
 _Access Management Console http://localhost:15672/#/_ \
 _Ref https://www.rabbitmq.com/getstarted.html_ \
 _Installing RabbitMQ on mac https://medium.com/macoclock/setup-rabbitmq-on-your-macos-in-3-mins-f27d3ce25f55_
