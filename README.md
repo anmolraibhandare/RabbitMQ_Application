@@ -55,6 +55,7 @@ Exchange types: direct, topic, headers and fanout
 
 ![](Images/python-three-overall.png)
 
+Exchange: Fanout
 1. Create an exchange called logs of type fanout
 2. We can now publish the named exchange instead
 3. Previously, we were creating Temporary queues - hello, task queues. But for logs, we want to hear about all log messages, not just a subset of them. We're also interested only in currently flowing messages not in the old ones.
@@ -67,6 +68,7 @@ Exchange types: direct, topic, headers and fanout
 ## Routing 
 In this part we will direct only critical error messages to the log file (to save disk space), while still being able to print all of the log messages on the console. We want to filter messages based on their severity. For example we may want a program which writes log messages to the disk to only receive critical errors, and not waste disk space on warning or info log messages.
 
+Exchange: Direct
 1. Create Binding with routingKey
 2. Use a direct exchange - a message goes to the queues whose binding key exactly matches the routing key of the message
 
@@ -81,6 +83,34 @@ A message with routing key `black` will be delivered to both Q1 and Q2
 3. We receive messages exactly the same way we did before except we're going to create a new binding for each severity we're interested in.
 
 ![Example setup 2:](Images/java-four.png) \
+
+## Topics
+Exchange: Topics
+The routing key for type topic exchange must be a list of words, delimited by dots. The binding key must also be in the same form. The message sent with a routing key is delivered to all queues that are bound to the matching binding key. Important cases for binding keys: \
+`*` (star) can substitute for exactly one word \
+`#` (hash) can substitute for zero or more words
+
+![Example setup 2:](Images/java-five.png) \
+
+In this example, we're going to send messages which all describe animals. The messages will be sent with a routing key that consists of three words (two dots). The first word in the routing key will describe speed, second a colour and third a species: `<speed>.<colour>.<species>`.
+
+In the example we will create three bindings: Q1 is bound with binding key `"*.orange.*"` and Q2 with `"*.*.rabbit"` and `"lazy.#"`.
+ 
+ - Q1 is interested in orange animals
+ - Q2 is interested in hearing about rabbits and lazy animals
+ 
+ For example:
+ - `quick.orange.rabbit` -> delivered to both Q1 and Q2
+ - `lazy.orange.elephant` -> delivered to both Q1 and Q2
+ - `quick.orange.fox` -> delivered to Q1
+ - `lazy.brown.fox` -> delivered to Q2
+ - `lazy.pink.rabbit` -> delivered to Q2 only once
+ - `quick.brown.fox` -> discarded
+ - `lazy.orage.male.rabbit` -> delivered to Q2
+
+## Remote procedure call (RPC)
+
+
 
 
 _Access Management Console http://localhost:15672/#/_ \
