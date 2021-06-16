@@ -18,6 +18,7 @@ public class ReceiveLogsDirect {
             System.exit(1);
         }
 
+        // Create a new binding for each severity
         for (String severity : argv) {
             channel.queueBind(queueName, EXCHANGE_NAME, severity);
         }

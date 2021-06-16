@@ -11,6 +11,9 @@ public class EmitLog {
         factory.setHost("localhost");
         try (Connection connection = factory.newConnection();
              Channel channel = connection.createChannel()) {
+
+            // Exchange type - fanout
+            // Send message to a consumer listening
             channel.exchangeDeclare(EXCHANGE_NAME, "fanout");
 
             String message = argv.length < 1 ? "info: Hello World!" :

@@ -12,11 +12,18 @@ public class EmitLogDirect {
         factory.setHost("localhost");
         try (Connection connection = factory.newConnection();
              Channel channel = connection.createChannel()) {
+
+            // creating an exchange type direct
             channel.exchangeDeclare(EXCHANGE_NAME, BuiltinExchangeType.DIRECT);
 
+            // Check severity
             String severity = getSeverity(argv);
+
+            // Get message
             String message = getMessage(argv);
 
+            // Adding the severity to routingKey 
+            // this ensures that the receiveing will be able to select the severity it wants to receive
             channel.basicPublish(EXCHANGE_NAME, severity, null, message.getBytes("UTF-8"));
             System.out.println(" [x] Sent '" + severity + "':'" + message + "'");
         }
@@ -34,6 +41,7 @@ public class EmitLogDirect {
         return joinStrings(strings, " ", 1);
     }
 
+    // Joining strings function
     private static String joinStrings(String[] strings, String delimiter, int startIndex) {
         int length = strings.length;
         if (length == 0) return "";

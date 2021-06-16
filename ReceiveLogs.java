@@ -12,8 +12,13 @@ public class ReceiveLogs {
     Connection connection = factory.newConnection();
     Channel channel = connection.createChannel();
 
+    // Exchange type - fanout 
     channel.exchangeDeclare(EXCHANGE_NAME, "fanout");
+
     String queueName = channel.queueDeclare().getQueue();
+
+    // Establish binding between queue and exchange with no routingKey
+    // This isn't required because the exchange type is fanout
     channel.queueBind(queueName, EXCHANGE_NAME, "");
 
     System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
