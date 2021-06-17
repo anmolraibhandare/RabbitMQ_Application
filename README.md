@@ -160,6 +160,88 @@ Client code:
 - Finally, return the reponse
 
 ## Publisher Confirms
+We will determine ways of using publisher confirms to make sure published messages have safely reached the broker.
+
+### What is publisher confirms?
+Publisher confirms are a RabbitMQ extension to the AMQP 0.9.1 protocol. Publisher confirms are enabled at the channel level with the confirmSelect method:
+```
+Channel channel = connection.createChannel();
+channel.confirmSelect();
+```
+This method must be called on every channel that you expect to use publisher confirms. Confirms should be enabled just once, not for every message published.
+
+### 1. Publishing Messages Individually
+Publishing a message and waiting synchronously for its confirmation.
+```
+channel.waitForConfirmsOrDie(5_000);
+```
+We publish a message and wait for its confirmation. The method returns as soon as the message is confirmed. If the message is not confirmed within the timeout or if it is nack-ed (meaning the broker could not take care of it for some reason), the method will throw an exception.
+
+Drawback: **it significantly slows down publishing**, as the confirmation of a message blocks the publishing of all subsequent messages.
+
+### 2. Publishing Messages in Batches
+Here we publish a batch of messages and wait for this whole batch to be confirmed.
+```
+int batchSize = 100;
+int outstandingMessageCount = 0;
+while (thereAreMessagesToPublish()) {
+    byte[] body = ...;
+    BasicProperties properties = ...;
+    channel.basicPublish(exchange, queue, properties, body);
+    outstandingMessageCount++;
+    
+    // Pubshish only when the batch is received
+    if (outstandingMessageCount == batchSize) {
+        ch.waitForConfirmsOrDie(5_000);
+        outstandingMessageCount = 0;
+    }
+}
+if (outstandingMessageCount > 0) {
+    ch.waitForConfirmsOrDie(5_000);
+}
+```
+Improvement: Waiting for a batch of messages to be confirmed improves throughput drastically over waiting for a confirm for individual message (up to 20-30 times with a remote RabbitMQ node)
+Drawback: When in failure, we wouldn't know what went wrong, so we may have to keep a whole batch in memory to log something meaningful or to re-publish the messages
+
+### 3. Handling Publisher Confirms Asynchronously
+The broker confirms published messages asynchronously, one just needs to register a callback on the client to be notified of these confirms:
+```
+Channel channel = connection.createChannel();
+channel.confirmSelect();
+channel.addConfirmListener((sequenceNumber, multiple) -> {
+    // code when message is confirmed
+}, (sequenceNumber, multiple) -> {
+    // code when message is nack-ed
+});
+```
+Each callback has 2 parameters:
+- sequence number: a number that identifies the confirmed or nack-ed message
+- multiple: this is a boolean value. If false, only one message is confirmed/nack-ed, if true, all messages with a lower or equal sequence number are confirmed/nack-ed.
+
+The sequence number can be obtained with `Channel#getNextPublishSeqNo()` before publishing:
+```
+int sequenceNumber = channel.getNextPublishSeqNo());
+ch.basicPublish(exchange, queue, properties, body);
+```
+We can correlate messages with sequence number by using a map. Let's assume we want to publish strings because they are easy to turn into an array of bytes for publishing.
+```
+ConcurrentNavigableMap<Long, String> outstandingConfirms = new ConcurrentSkipListMap<>();
+// ... code for confirm callbacks will come later
+String body = "...";
+outstandingConfirms.put(channel.getNextPublishSeqNo(), body);
+channel.basicPublish(exchange, queue, properties, body.getBytes());
+```
+The publishing code now tracks outbound messages with a map. We need to then clean this map when confirms arrive and add a warning when messages are nack-ed.
+### Summary
+Handling publisher confirms asynchronously usually requires the following steps:
+- provide a way to correlate the publishing sequence number with a message.
+- register a confirm listener on the channel to be notified when publisher acks/nacks arrive to perform the appropriate actions, like logging or re-publishing a nack-ed message. The sequence-number-to-message correlation mechanism may also require some cleaning during this step.
+- track the publishing sequence number before publishing a message.
+
+### Putting it together
+- publishing messages individually, waiting for the confirmation synchronously: simple, but very limited throughput.
+- publishing messages in batch, waiting for the confirmation synchronously for a batch: simple, reasonable throughput, but hard to reason about when something goes wrong.
+- asynchronous handling: best performance and use of resources, good control in case of error, but can be involved to implement correctly.
 
 _Access Management Console http://localhost:15672/#/_ \
 _Ref https://www.rabbitmq.com/getstarted.html_ \
